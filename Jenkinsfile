@@ -5,7 +5,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 // Cloner le dépôt GitHub en spécifiant la branche "main"
-                git branch: 'main', url: 'https://github.com/Mohaa922/serveurweb_Hopital.git'
+                git branch: 'test', url: 'https://github.com/Mohaa922/serveurweb_Hopital.git'
             }
         }
 
