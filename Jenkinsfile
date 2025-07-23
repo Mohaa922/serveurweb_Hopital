@@ -1,26 +1,35 @@
 pipeline {
-    agent any
+    agent {
+        label 'vm2'
+    }
 
     stages {
-        stage('Checkout') {
+        stage('📥 Clonage du projet') {
             steps {
-                // Cloner le dépôt GitHub en spécifiant la branche "main"
-                git branch: 'main', url: 'https://github.com/Mohaa922/serveurweb_Hopital.git'
+                git 'https://github.com/Mohaa922/serveurweb_Hopital.git'
             }
         }
 
-        stage('Vérification de la syntaxe HTML') {
+        stage('🐳 Build image Docker') {
             steps {
-                // Vérification de la syntaxe du fichier index.html avec suppression de l'échec en cas d'avertissement
-                script {
-                    def status = sh(script: 'tidy -e index.html', returnStatus: true)
-                    if (status != 0) {
-                        echo "Des avertissements ont été trouvés dans le fichier HTML."
-                    } else {
-                        echo "Aucun problème de syntaxe trouvé dans le fichier HTML."
-                    }
+                dir('.') {
+                    sh 'docker build -t hopital-web:latest .'
                 }
             }
         }
+
+        stage('🚀 Déploiement conteneur') {
+            steps {
+                sh 'docker rm -f hopital-container || true'
+                sh 'docker run -d --name hopital-container -p 80:80 hopital-web:latest'
+            }
+        }
+    }
+
+    post {
+        always {
+            echo '✅ Pipeline terminé'
+        }
     }
 }
+
