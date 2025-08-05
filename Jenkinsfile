@@ -1,26 +1,62 @@
 pipeline {
-    agent any
+    agent {
+        label 'vm2'
+    }
+
+    environment {
+        DOCKER_IMAGE     = "hopital-web:latest"
+        TEST_IMAGE       = "hopital-web-tests:latest"
+        CONTAINER_NAME   = "hopital-web"
+        APP_PORT         = "8080"
+    }
 
     stages {
-        stage('Checkout') {
+
+        stage('🐳 Build image Docker') {
             steps {
-                // Cloner le dépôt GitHub en spécifiant la branche "main"
-                git branch: 'test', url: 'https://github.com/Mohaa922/serveurweb_Hopital.git'
+                echo "📦 Construction de l'image de l'application"
+                sh '''
+                    docker build -t ${DOCKER_IMAGE} .
+                '''
             }
         }
 
-        stage('Vérification de la syntaxe HTML') {
+        stage('🧪 Tests unitaires') {
             steps {
-                // Vérification de la syntaxe du fichier index.html avec suppression de l'échec en cas d'avertissement
-                script {
-                    def status = sh(script: 'tidy -e index.html', returnStatus: true)
-                    if (status != 0) {
-                        echo "Des avertissements ont été trouvés dans le fichier HTML."
-                    } else {
-                        echo "Aucun problème de syntaxe trouvé dans le fichier HTML."
-                    }
-                }
+                echo "🔨 Construction de l'image de tests"
+                sh '''
+                    docker build -f Dockerfile.tests -t ${TEST_IMAGE} .
+                '''
+
+                echo "✅ Exécution des tests unitaires"
+                sh '''
+                    docker run --rm ${TEST_IMAGE}
+                '''
             }
+        }
+
+        stage('🧹 Stop & Remove previous container') {
+            steps {
+                echo "🗑️ Arrêt et suppression de l'ancien conteneur (s'il existe)"
+                sh '''
+                    docker rm -f ${CONTAINER_NAME} || true
+                '''
+            }
+        }
+
+        stage('🚀 Run new container') {
+            steps {
+                echo "🚀 Lancement du nouveau conteneur"
+                sh '''
+                    docker run -d --name ${CONTAINER_NAME} -p ${APP_PORT}:80 ${DOCKER_IMAGE}
+                '''
+            }
+        }
+    }
+
+    post {
+        always {
+            echo '✅ Pipeline terminé.'
         }
     }
 }
