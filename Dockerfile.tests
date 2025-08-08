@@ -1,0 +1,17 @@
+# Dockerfile.tests — conteneur dédié aux tests unitaires
+FROM node:18-alpine
+
+WORKDIR /usr/src/app
+
+# 1) Copier les fichiers package.json et package-lock.json (le cas échéant)
+COPY package*.json ./
+
+# 2) Installer les dépendances
+RUN npm install
+
+# 3) Copier tout le code (incluant ton dossier test/)
+COPY . .
+
+# 4) Lancer la suite de tests
+CMD ["npm", "test"]
+

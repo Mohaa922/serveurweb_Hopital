@@ -1,0 +1,14 @@
+{
+  "name": "hopital-web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "mocha \"test/**/*.js\""
+  },
+  "devDependencies": {
+    "mocha": "^10.8.2",
+    "chai": "^5.2.1"
+  }
+}
+
